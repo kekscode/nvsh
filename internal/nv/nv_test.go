@@ -88,3 +88,31 @@ func TestNV_CreateNote(t *testing.T) {
 		})
 	}
 }
+
+func TestNV_FuzzyFindNoteContent(t *testing.T) {
+	type args struct {
+		q string
+		n []string
+	}
+	tests := []struct {
+		name    string
+		nv      *NV
+		args    args
+		want    []string
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.nv.FuzzyFindNoteContent(tt.args.q, tt.args.n)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("NV.FuzzyFindNoteContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NV.FuzzyFindNoteContent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
