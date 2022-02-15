@@ -7,8 +7,8 @@ func NewNV() *NV {
 	return &NV{}
 }
 
-// FilterNotes takes a query string and returns a slice of notes (a note is a file)
-func (nv *NV) FilterNotes(q string) ([]string, error) {
+// FuzzyFilterNotes takes a query string and returns a sub-slice of notes with fuzzy matched results
+func (nv *NV) FuzzyFilterNotes(q string, n []string) ([]string, error) {
 	return []string{}, nil
 }
 

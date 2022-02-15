@@ -21,9 +21,10 @@ func TestNewNV(t *testing.T) {
 	}
 }
 
-func TestNV_FilterNotes(t *testing.T) {
+func TestNV_FuzzyFilterNotes(t *testing.T) {
 	type args struct {
 		q string
+		n []string
 	}
 	tests := []struct {
 		name    string
@@ -32,17 +33,36 @@ func TestNV_FilterNotes(t *testing.T) {
 		want    []string
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Get exact match",
+			nv:   &NV{},
+			args: args{
+				q: "abc",
+				n: []string{"cde", "abc", "efg"},
+			},
+			want:    []string{"abc"},
+			wantErr: false,
+		},
+		{
+			name: "No match",
+			nv:   &NV{},
+			args: args{
+				q: "xxx",
+				n: []string{"cde", "abc", "efg"},
+			},
+			want:    []string{""},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.nv.FilterNotes(tt.args.q)
+			got, err := tt.nv.FuzzyFilterNotes(tt.args.q, tt.args.n)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NV.FilterNotes() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("NV.FuzzyFilterNotes() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NV.FilterNotes() = %v, want %v", got, tt.want)
+				t.Errorf("NV.FuzzyFilterNotes() = %v, want %v", got, tt.want)
 			}
 		})
 	}
