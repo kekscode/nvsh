@@ -44,13 +44,13 @@ func TestNV_FuzzyFilterNotes(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "No match",
+			name: "Get near match",
 			nv:   &NV{},
 			args: args{
-				q: "xxx",
+				q: "efa",
 				n: []string{"cde", "abc", "efg"},
 			},
-			want:    []string{""},
+			want:    []string{"efg"},
 			wantErr: true,
 		},
 	}

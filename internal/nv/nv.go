@@ -1,5 +1,9 @@
 package nv
 
+import (
+	"github.com/sahilm/fuzzy"
+)
+
 type NV struct {
 }
 
@@ -9,7 +13,12 @@ func NewNV() *NV {
 
 // FuzzyFilterNotes takes a query string and returns a sub-slice of notes with fuzzy matched results
 func (nv *NV) FuzzyFilterNotes(q string, n []string) ([]string, error) {
-	return []string{}, nil
+	matches := fuzzy.Find(q, n)
+	s := []string{}
+	for _, m := range matches {
+		s = append(s, m.Str)
+	}
+	return s, nil
 }
 
 // FuzzyFindNoteContent takes a query string and returns a sub-slice of fuzzy matches in content

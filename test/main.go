@@ -3,17 +3,31 @@ package main
 import (
 	"fmt"
 	"log"
+
+	"io/ioutil"
 	"strings"
+
 	"time"
 
 	"github.com/jroimartin/gocui"
 	"github.com/sahilm/fuzzy"
 )
 
+var filenamesBytes []byte
 var err error
+
+var filenames []string
+
 var g *gocui.Gui
 
 func main() {
+	filenamesBytes, err = ioutil.ReadFile("filepaths-k8s.txt")
+	if err != nil {
+		panic(err)
+	}
+
+	filenames = strings.Split(string(filenamesBytes), "\n")
+
 	g, err = gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		log.Panicln(err)
@@ -22,11 +36,25 @@ func main() {
 
 	g.Cursor = true
 	g.Mouse = false
-	g.Highlight = true
 
 	g.SetManagerFunc(layout)
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("finder", gocui.KeyArrowRight, gocui.ModNone, switchToMainView); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("main", gocui.KeyArrowLeft, gocui.ModNone, switchToSideView); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("", gocui.KeyArrowDown, gocui.ModNone, cursorDown); err != nil {
+		log.Panicln(err)
+	}
+	if err := g.SetKeybinding("", gocui.KeyArrowUp, gocui.ModNone, cursorUp); err != nil {
 		log.Panicln(err)
 	}
 
@@ -35,52 +63,91 @@ func main() {
 	}
 }
 
-func quit(g *gocui.Gui, v *gocui.View) error {
-	return gocui.ErrQuit
+func cursorDown(g *gocui.Gui, v *gocui.View) error {
+	if v != nil {
+		cx, cy := v.Cursor()
+		if err := v.SetCursor(cx, cy+1); err != nil {
+			ox, oy := v.Origin()
+			if err := v.SetOrigin(ox, oy+1); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func cursorUp(g *gocui.Gui, v *gocui.View) error {
+	if v != nil {
+		ox, oy := v.Origin()
+		cx, cy := v.Cursor()
+		if err := v.SetCursor(cx, cy-1); err != nil && oy > 0 {
+			if err := v.SetOrigin(ox, oy-1); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func switchToSideView(g *gocui.Gui, view *gocui.View) error {
+	if _, err := g.SetCurrentView("finder"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func switchToMainView(g *gocui.Gui, view *gocui.View) error {
+	if _, err := g.SetCurrentView("main"); err != nil {
+		return err
+	}
+	return nil
 }
 
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
-	fmt.Print("")
-	if v, err := g.SetView("query", 0, 0, maxX-1, 2); err != nil {
+	if v, err := g.SetView("finder", -1, 0, 80, 10); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 		v.Wrap = true
 		v.Editable = true
 		v.Frame = true
-		v.Title = "Search note"
-		if _, err := g.SetCurrentView("query"); err != nil {
+		v.Title = "Type pattern here. Press -> or <- to switch between panes"
+		if _, err := g.SetCurrentView("finder"); err != nil {
 			return err
 		}
 		v.Editor = gocui.EditorFunc(finder)
 	}
-	if v, err := g.SetView("results", 0, 2, maxX-1, maxY+(maxY/2)); err != nil {
+	if v, err := g.SetView("main", 79, 0, maxX, maxY-1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 
+		fmt.Fprintf(v, "%s", filenamesBytes)
 		v.Editable = false
 		v.Wrap = true
 		v.Frame = true
-		v.Title = "Found notes"
+		v.Title = "list of all files"
 	}
 
-	if v, err := g.SetView("content", 0, maxY/2, maxX-1, maxY+(maxY/2)); err != nil {
+	if v, err := g.SetView("results", -1, 3, 79, maxY-1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 		v.Editable = false
 		v.Wrap = true
 		v.Frame = true
-		v.Title = "Found in content"
+		v.Title = "Search Results"
 	}
 
 	return nil
 }
 
+func quit(g *gocui.Gui, v *gocui.View) error {
+	return gocui.ErrQuit
+}
+
 func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
-	// TODO: https://github.com/sahilm/fuzzy/blob/master/_example/main.go
 	switch {
 	case ch != 0 && mod == 0:
 		v.EditWrite(ch)
@@ -91,7 +158,7 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 			}
 			results.Clear()
 			t := time.Now()
-			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), []string{"abc", "def", "ghi"})
+			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), filenames)
 			elapsed := time.Since(t)
 			fmt.Fprintf(results, "found %v matches in %v\n", len(matches), elapsed)
 			for _, match := range matches {
@@ -118,7 +185,7 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 			}
 			results.Clear()
 			t := time.Now()
-			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), []string{"abc", "def", "ghi"})
+			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), filenames)
 			elapsed := time.Since(t)
 			fmt.Fprintf(results, "found %v matches in %v\n", len(matches), elapsed)
 			for _, match := range matches {
@@ -142,7 +209,7 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 			}
 			results.Clear()
 			t := time.Now()
-			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), []string{"abc", "def", "ghi"})
+			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), filenames)
 			elapsed := time.Since(t)
 			fmt.Fprintf(results, "found %v matches in %v\n", len(matches), elapsed)
 			for _, match := range matches {
