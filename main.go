@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/jroimartin/gocui"
+	"github.com/kekscode/nvsh/internal/nv"
 	"github.com/sahilm/fuzzy"
 )
 
@@ -14,6 +16,15 @@ var err error
 var g *gocui.Gui
 
 func main() {
+
+	nv := nv.New(getEditor())
+
+	if nv.Editor == "" {
+		log.Fatalf("Neither VISUAL nor EDITOR environment variables have been set or both are set but empty")
+	}
+
+	fmt.Printf("Editor found: %v\n", nv.Editor)
+
 	g, err = gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		log.Panicln(err)
@@ -169,4 +180,13 @@ func contains(needle int, haystack []int) bool {
 		}
 	}
 	return false
+}
+
+func getEditor() string {
+	editor := os.Getenv("VISUAL")
+	if editor == "" {
+		editor = os.Getenv("EDITOR")
+	}
+
+	return editor
 }

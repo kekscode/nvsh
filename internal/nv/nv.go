@@ -5,10 +5,11 @@ import (
 )
 
 type NV struct {
+	Editor string
 }
 
-func NewNV() *NV {
-	return &NV{}
+func New(editor string) *NV {
+	return &NV{Editor: editor}
 }
 
 // FuzzyFilterNotes takes a query string and returns a sub-slice of notes with fuzzy matched results
