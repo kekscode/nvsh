@@ -5,17 +5,18 @@ import (
 	"testing"
 )
 
-func TestNewNV(t *testing.T) {
+func TestNew(t *testing.T) {
 	tests := []struct {
-		name string
-		want *NV
+		name   string
+		editor string
+		want   *NV
 	}{
-		{"New NV object", NewNV()},
+		{"test create new NV object", "nvim", &NV{"nvim"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewNV(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewNV() = %v, want %v", got, tt.want)
+			if got := New(tt.editor); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("New() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -34,8 +35,8 @@ func TestNV_FuzzyFilterNotes(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Get exact match",
-			nv:   &NV{},
+			name: "test exact match",
+			nv:   &NV{"nvim"},
 			args: args{
 				q: "abc",
 				n: []string{"cde", "abc", "efg"},
@@ -44,8 +45,8 @@ func TestNV_FuzzyFilterNotes(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Get near match",
-			nv:   &NV{},
+			name: "test near match",
+			nv:   &NV{"nvim"},
 			args: args{
 				q: "efa",
 				n: []string{"cde", "abc", "efg"},
