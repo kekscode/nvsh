@@ -1,6 +1,8 @@
 package nv
 
 import (
+	"errors"
+
 	"github.com/sahilm/fuzzy"
 )
 
@@ -18,6 +20,9 @@ func (nv *NV) FuzzyFilterNotes(q string, n []string) ([]string, error) {
 	s := []string{}
 	for _, m := range matches {
 		s = append(s, m.Str)
+	}
+	if len(s) == 0 {
+		return s, errors.New("No matches found")
 	}
 	return s, nil
 }

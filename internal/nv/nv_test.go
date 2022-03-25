@@ -48,11 +48,11 @@ func TestNV_FuzzyFilterNotes(t *testing.T) {
 			name: "test near match",
 			nv:   &NV{"nvim"},
 			args: args{
-				q: "efa",
-				n: []string{"cde", "abc", "efg"},
+				q: "abclmn",
+				n: []string{"abcdefghijklmn", "mnopqrstuvwxyz"},
 			},
-			want:    []string{"efg"},
-			wantErr: true,
+			want:    []string{"abcdefghijklmn"},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
