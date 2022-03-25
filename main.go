@@ -18,12 +18,16 @@ var g *gocui.Gui
 func main() {
 
 	nv := nv.New(getEditor())
-
 	if nv.Editor == "" {
 		log.Fatalf("Neither VISUAL nor EDITOR environment variables have been set or both are set but empty")
 	}
-
 	fmt.Printf("Editor found: %v\n", nv.Editor)
+
+	f, err := nv.GetFiles("./test/zettelkasten/")
+	if err != nil {
+		fmt.Printf("Error: %v", err)
+	}
+	fmt.Print(f)
 
 	g, err = gocui.NewGui(gocui.OutputNormal)
 	if err != nil {

@@ -2,6 +2,9 @@ package nv
 
 import (
 	"errors"
+	"fmt"
+	"io/fs"
+	"path/filepath"
 
 	"github.com/sahilm/fuzzy"
 )
@@ -35,4 +38,20 @@ func (nv *NV) FuzzyFindNoteContent(q string, n []string) ([]string, error) {
 // CreateNote creates a new note for the given query string q
 func (nv *NV) CreateNote(q string) error {
 	return nil
+}
+
+func (nv *NV) GetFiles(dir string) ([]string, error) {
+
+	var files []string
+
+	filepath.WalkDir(dir, func(path string, info fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		fmt.Println(path, info.Name())
+		files = append(files, path)
+		return nil
+	})
+
+	return files, nil
 }
