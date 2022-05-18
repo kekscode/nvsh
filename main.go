@@ -23,12 +23,6 @@ func main() {
 	}
 	fmt.Printf("Editor found: %v\n", nvsh.Editor)
 
-	f, err := nvsh.GetFiles("./test/zettelkasten/")
-	if err != nil {
-		fmt.Printf("Error: %v", err)
-	}
-	fmt.Print(f)
-
 	g, err = gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		log.Panicln(err)
@@ -104,7 +98,6 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 			if err != nil {
 				// handle error
 			}
-			fres.Clear()
 			t := time.Now()
 			files, err := nvsh.GetFiles(".")
 			if err != nil {
@@ -116,6 +109,7 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 			for _, match := range matches {
 				for i := 0; i < len(match.Str); i++ {
 					if contains(i, match.MatchedIndexes) {
+						// colorize match
 						fmt.Fprintf(fres, fmt.Sprintf("\033[1m%s\033[0m", string(match.Str[i])))
 					} else {
 						fmt.Fprintf(fres, string(match.Str[i]))
@@ -134,15 +128,18 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 			if err != nil {
 				// handle error
 			}
-			fres.Clear()
 			t := time.Now()
 			files, err := nvsh.GetFiles(".")
+			if err != nil {
+				// handle error
+			}
 			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), files)
 			elapsed := time.Since(t)
 			fmt.Fprintf(fres, "found %v matches in %v\n", len(matches), elapsed)
 			for _, match := range matches {
 				for i := 0; i < len(match.Str); i++ {
 					if contains(i, match.MatchedIndexes) {
+						// colorize match
 						fmt.Fprintf(fres, fmt.Sprintf("\033[1m%s\033[0m", string(match.Str[i])))
 					} else {
 						fmt.Fprintf(fres, string(match.Str[i]))
@@ -158,21 +155,23 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 			if err != nil {
 				// handle error
 			}
-			fres.Clear()
 			t := time.Now()
 			files, err := nvsh.GetFiles(".")
+			if err != nil {
+				// handle error
+			}
 			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), files)
 			elapsed := time.Since(t)
 			fmt.Fprintf(fres, "found %v matches in %v\n", len(matches), elapsed)
 			for _, match := range matches {
 				for i := 0; i < len(match.Str); i++ {
 					if contains(i, match.MatchedIndexes) {
+						// colorize match
 						fmt.Fprintf(fres, fmt.Sprintf("\033[1m%s\033[0m", string(match.Str[i])))
 					} else {
 						fmt.Fprintf(fres, string(match.Str[i]))
 					}
 				}
-				fmt.Fprintln(fres, "")
 			}
 			return nil
 		})
