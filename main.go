@@ -106,18 +106,7 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), files)
 			elapsed := time.Since(t)
 			fmt.Fprintf(fres, "found %v matches in %v\n", len(matches), elapsed)
-			for _, match := range matches {
-				for i := 0; i < len(match.Str); i++ {
-					if contains(i, match.MatchedIndexes) {
-						// colorize match
-						fmt.Fprintf(fres, fmt.Sprintf("\033[1m%s\033[0m", string(match.Str[i])))
-					} else {
-						fmt.Fprintf(fres, string(match.Str[i]))
-					}
-
-				}
-			}
-			return nil
+			return highlightMatches(matches, fres)
 		})
 	case key == gocui.KeySpace:
 		v.EditWrite(' ')
@@ -136,17 +125,7 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), files)
 			elapsed := time.Since(t)
 			fmt.Fprintf(fres, "found %v matches in %v\n", len(matches), elapsed)
-			for _, match := range matches {
-				for i := 0; i < len(match.Str); i++ {
-					if contains(i, match.MatchedIndexes) {
-						// colorize match
-						fmt.Fprintf(fres, fmt.Sprintf("\033[1m%s\033[0m", string(match.Str[i])))
-					} else {
-						fmt.Fprintf(fres, string(match.Str[i]))
-					}
-				}
-			}
-			return nil
+			return highlightMatches(matches, fres)
 		})
 	case key == gocui.KeyDelete:
 		v.EditDelete(false)
@@ -163,21 +142,26 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), files)
 			elapsed := time.Since(t)
 			fmt.Fprintf(fres, "found %v matches in %v\n", len(matches), elapsed)
-			for _, match := range matches {
-				for i := 0; i < len(match.Str); i++ {
-					if contains(i, match.MatchedIndexes) {
-						// colorize match
-						fmt.Fprintf(fres, fmt.Sprintf("\033[1m%s\033[0m", string(match.Str[i])))
-					} else {
-						fmt.Fprintf(fres, string(match.Str[i]))
-					}
-				}
-			}
-			return nil
+			// colorize match
+			return highlightMatches(matches, fres)
 		})
 	case key == gocui.KeyInsert:
 		v.Overwrite = !v.Overwrite
 	}
+}
+
+func highlightMatches(matches fuzzy.Matches, fres *gocui.View) error {
+	for _, match := range matches {
+		for i := 0; i < len(match.Str); i++ {
+			if contains(i, match.MatchedIndexes) {
+
+				fmt.Fprintf(fres, fmt.Sprintf("\033[1m%s\033[0m", string(match.Str[i])))
+			} else {
+				fmt.Fprintf(fres, string(match.Str[i]))
+			}
+		}
+	}
+	return nil
 }
 
 func contains(needle int, haystack []int) bool {
