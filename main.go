@@ -14,16 +14,16 @@ import (
 
 var err error
 var g *gocui.Gui
+var nvsh = nv.New(getEditor())
 
 func main() {
 
-	nv := nv.New(getEditor())
-	if nv.Editor == "" {
+	if nvsh.Editor == "" {
 		log.Fatalf("Neither VISUAL nor EDITOR environment variables have been set or both are set but empty")
 	}
-	fmt.Printf("Editor found: %v\n", nv.Editor)
+	fmt.Printf("Editor found: %v\n", nvsh.Editor)
 
-	f, err := nv.GetFiles("./test/zettelkasten/")
+	f, err := nvsh.GetFiles("./test/zettelkasten/")
 	if err != nil {
 		fmt.Printf("Error: %v", err)
 	}
@@ -106,7 +106,11 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 			}
 			results.Clear()
 			t := time.Now()
-			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), []string{"abc", "def", "ghi"})
+			files, err := nvsh.GetFiles(".")
+			if err != nil {
+				// handle error
+			}
+			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), files)
 			elapsed := time.Since(t)
 			fmt.Fprintf(results, "found %v matches in %v\n", len(matches), elapsed)
 			for _, match := range matches {
