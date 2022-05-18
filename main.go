@@ -70,7 +70,7 @@ func layout(g *gocui.Gui) error {
 		}
 		v.Editor = gocui.EditorFunc(finder)
 	}
-	if v, err := g.SetView("results", 0, 2, maxX-1, maxY+(maxY/2)); err != nil {
+	if v, err := g.SetView("fileMatchesView", 0, 2, maxX-1, maxY+(maxY/2)); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -81,7 +81,7 @@ func layout(g *gocui.Gui) error {
 		v.Title = "Found notes"
 	}
 
-	if v, err := g.SetView("content", 0, maxY/2, maxX-1, maxY+(maxY/2)); err != nil {
+	if v, err := g.SetView("fileContentView", 0, maxY/2, maxX-1, maxY+(maxY/2)); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -100,11 +100,11 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 	case ch != 0 && mod == 0:
 		v.EditWrite(ch)
 		g.Update(func(gui *gocui.Gui) error {
-			results, err := g.View("results")
+			fres, err := g.View("fileMatchesView")
 			if err != nil {
 				// handle error
 			}
-			results.Clear()
+			fres.Clear()
 			t := time.Now()
 			files, err := nvsh.GetFiles(".")
 			if err != nil {
@@ -112,17 +112,16 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 			}
 			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), files)
 			elapsed := time.Since(t)
-			fmt.Fprintf(results, "found %v matches in %v\n", len(matches), elapsed)
+			fmt.Fprintf(fres, "found %v matches in %v\n", len(matches), elapsed)
 			for _, match := range matches {
 				for i := 0; i < len(match.Str); i++ {
 					if contains(i, match.MatchedIndexes) {
-						fmt.Fprintf(results, fmt.Sprintf("\033[1m%s\033[0m", string(match.Str[i])))
+						fmt.Fprintf(fres, fmt.Sprintf("\033[1m%s\033[0m", string(match.Str[i])))
 					} else {
-						fmt.Fprintf(results, string(match.Str[i]))
+						fmt.Fprintf(fres, string(match.Str[i]))
 					}
 
 				}
-				fmt.Fprintln(results, "")
 			}
 			return nil
 		})
@@ -131,48 +130,49 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 	case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
 		v.EditDelete(true)
 		g.Update(func(gui *gocui.Gui) error {
-			results, err := g.View("results")
+			fres, err := g.View("fileMatchesView")
 			if err != nil {
 				// handle error
 			}
-			results.Clear()
+			fres.Clear()
 			t := time.Now()
-			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), []string{"abc", "def", "ghi"})
+			files, err := nvsh.GetFiles(".")
+			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), files)
 			elapsed := time.Since(t)
-			fmt.Fprintf(results, "found %v matches in %v\n", len(matches), elapsed)
+			fmt.Fprintf(fres, "found %v matches in %v\n", len(matches), elapsed)
 			for _, match := range matches {
 				for i := 0; i < len(match.Str); i++ {
 					if contains(i, match.MatchedIndexes) {
-						fmt.Fprintf(results, fmt.Sprintf("\033[1m%s\033[0m", string(match.Str[i])))
+						fmt.Fprintf(fres, fmt.Sprintf("\033[1m%s\033[0m", string(match.Str[i])))
 					} else {
-						fmt.Fprintf(results, string(match.Str[i]))
+						fmt.Fprintf(fres, string(match.Str[i]))
 					}
 				}
-				fmt.Fprintln(results, "")
 			}
 			return nil
 		})
 	case key == gocui.KeyDelete:
 		v.EditDelete(false)
 		g.Update(func(gui *gocui.Gui) error {
-			results, err := g.View("results")
+			fres, err := g.View("fileMatchesView")
 			if err != nil {
 				// handle error
 			}
-			results.Clear()
+			fres.Clear()
 			t := time.Now()
-			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), []string{"abc", "def", "ghi"})
+			files, err := nvsh.GetFiles(".")
+			matches := fuzzy.Find(strings.TrimSpace(v.ViewBuffer()), files)
 			elapsed := time.Since(t)
-			fmt.Fprintf(results, "found %v matches in %v\n", len(matches), elapsed)
+			fmt.Fprintf(fres, "found %v matches in %v\n", len(matches), elapsed)
 			for _, match := range matches {
 				for i := 0; i < len(match.Str); i++ {
 					if contains(i, match.MatchedIndexes) {
-						fmt.Fprintf(results, fmt.Sprintf("\033[1m%s\033[0m", string(match.Str[i])))
+						fmt.Fprintf(fres, fmt.Sprintf("\033[1m%s\033[0m", string(match.Str[i])))
 					} else {
-						fmt.Fprintf(results, string(match.Str[i]))
+						fmt.Fprintf(fres, string(match.Str[i]))
 					}
 				}
-				fmt.Fprintln(results, "")
+				fmt.Fprintln(fres, "")
 			}
 			return nil
 		})
