@@ -98,6 +98,7 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 			if err != nil {
 				// handle error
 			}
+			fres.Clear()
 			t := time.Now()
 			files, err := nvsh.GetFiles(".")
 			if err != nil {
@@ -117,6 +118,7 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 			if err != nil {
 				// handle error
 			}
+			fres.Clear()
 			t := time.Now()
 			files, err := nvsh.GetFiles(".")
 			if err != nil {
@@ -134,6 +136,7 @@ func finder(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 			if err != nil {
 				// handle error
 			}
+			fres.Clear()
 			t := time.Now()
 			files, err := nvsh.GetFiles(".")
 			if err != nil {
@@ -154,12 +157,12 @@ func highlightMatches(matches fuzzy.Matches, fres *gocui.View) error {
 	for _, match := range matches {
 		for i := 0; i < len(match.Str); i++ {
 			if contains(i, match.MatchedIndexes) {
-
 				fmt.Fprintf(fres, fmt.Sprintf("\033[1m%s\033[0m", string(match.Str[i])))
 			} else {
 				fmt.Fprintf(fres, string(match.Str[i]))
 			}
 		}
+		fmt.Fprintf(fres, "")
 	}
 	return nil
 }
